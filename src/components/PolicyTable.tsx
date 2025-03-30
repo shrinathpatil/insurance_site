@@ -42,12 +42,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Link from "next/link";
-import { databases, storage } from "@/lib/appwrite";
-import { BucketId, DatabaseId, PolicyCollectionId } from "@/constants";
-import { ClipLoader } from "react-spinners";
+import { fetchQuery } from "convex/nextjs";
+import { api } from "../../convex/_generated/api";
+import { Id } from "../../convex/_generated/dataModel";
+import TableSkeleton from "./table-skeleton";
 
 export type Policy = {
-  id?: string;
+  id?: Id<"policies">;
   date: string;
   registeredOwnerName: string;
   vehicleUsedOwnerName: string;
@@ -67,7 +68,8 @@ export type Policy = {
   agentPayout: number;
   netPayout: number;
   directCmorAgent: string;
-  fileId?: string;
+  fileUrl: string;
+  storageId?: Id<"_storage">;
 };
 
 export const columns: ColumnDef<Policy>[] = [
@@ -191,12 +193,7 @@ export const columns: ColumnDef<Policy>[] = [
     cell: ({ row }) => {
       const policy = row.original;
       const id = policy.id!;
-      const fileId = policy.fileId!;
-
-      let url = "";
-      if (fileId) {
-        url = storage.getFileView(BucketId, fileId).href;
-      }
+      const fileUrl = policy.fileUrl!;
 
       return (
         <DropdownMenu>
@@ -214,10 +211,10 @@ export const columns: ColumnDef<Policy>[] = [
                 Edit
               </Link>
             </DropdownMenuItem>
-            {url && (
+            {fileUrl && (
               <DropdownMenuItem>
                 <Link2 size={16} />
-                <Link href={url} target="_blank" className="w-full">
+                <Link href={fileUrl} target="_blank" className="w-full">
                   View Documents
                 </Link>
               </DropdownMenuItem>
@@ -243,12 +240,10 @@ const PolicyTable = () => {
 
   React.useEffect(() => {
     const fetchPolicy = async () => {
-      const response = await databases.listDocuments(
-        DatabaseId,
-        PolicyCollectionId
-      );
-      const policies = response.documents.map((doc) => ({
-        id: doc.$id,
+      const response = await fetchQuery(api.policies.getPolicies);
+
+      const policies = response.map((doc) => ({
+        id: doc._id,
         date: doc.date,
         registeredOwnerName: doc.registeredOwnerName,
         vehicleUsedOwnerName: doc.vehicleUsedOwnerName,
@@ -268,8 +263,10 @@ const PolicyTable = () => {
         agentPayout: doc.agentPayout,
         netPayout: doc.netPayout,
         directCmorAgent: doc.directCmorAgent,
-        fileId: doc.fileId,
+        fileUrl: doc.fileUrl,
+        storageId: doc.storageId,
       }));
+      //@ts-expect-error: setData is not in the type
       setData(policies);
       setLoading(false);
     };
@@ -338,8 +335,8 @@ const PolicyTable = () => {
 
   if (loading) {
     return (
-      <div className="w-full flex items-center justify-center h-8">
-        <ClipLoader color="blue" size={28} />
+      <div className="w-full flex items-center justify-center h-1/2">
+        <TableSkeleton />
       </div>
     );
   }
@@ -382,8 +379,8 @@ const PolicyTable = () => {
                       filter == "registeredOwnerName"
                         ? setFilter(column.id)
                         : filter === column.id
-                        ? setFilter("registeredOwnerName")
-                        : setFilter(column.id)
+                          ? setFilter("registeredOwnerName")
+                          : setFilter(column.id)
                     }
                   >
                     {column.id}

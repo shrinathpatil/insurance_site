@@ -1,6 +1,5 @@
 "use client";
-import { DatabaseId, PolicyCollectionId } from "@/constants";
-import { databases } from "@/lib/appwrite";
+
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -14,7 +13,6 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 import { useEffect, useState } from "react";
-import { ClipLoader } from "react-spinners";
 import { Button } from "./ui/button";
 import { ArrowUpDown, Link2, MoreHorizontal } from "lucide-react";
 import {
@@ -33,6 +31,9 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import Link from "next/link";
+import { fetchQuery } from "convex/nextjs";
+import { api } from "../../convex/_generated/api";
+import TableSkeleton from "./table-skeleton";
 
 type ExpiredPolicy = {
   id: string;
@@ -168,13 +169,10 @@ const ExpiredPolicies = () => {
 
   useEffect(() => {
     const getExpiredPolicies = async () => {
-      const result = await databases.listDocuments(
-        DatabaseId,
-        PolicyCollectionId
-      );
+      const result = await fetchQuery(api.policies.getPolicies);
       //@ts-expect-error: policyEndDate is not in the type
       const policies = [];
-      result.documents.forEach((policy) => {
+      result.forEach((policy) => {
         const today = new Date().toString();
 
         const sDate1 = new Date(policy.policyEndDate).toLocaleString(
@@ -194,7 +192,7 @@ const ExpiredPolicies = () => {
 
         if (diffTime <= 10) {
           policies.push({
-            id: policy.$id,
+            id: policy._id,
             registeredOwnerName: policy.registeredOwnerName,
             vehicleUsedOwnerName: policy.vehicleUsedOwnerName,
             vehicleRegistrationNumber: policy.vehicleRegistrationNumber,
@@ -234,8 +232,8 @@ const ExpiredPolicies = () => {
 
   if (loading) {
     return (
-      <div className="w-full flex items-center justify-center h-8">
-        <ClipLoader color="blue" size={28} />
+      <div className="w-full h-1/2 flex items-center justify-center ">
+        <TableSkeleton />
       </div>
     );
   }

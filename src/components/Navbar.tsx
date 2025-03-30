@@ -4,6 +4,10 @@ import { LogOutIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { account } from "@/lib/appwrite";
 import { useRouter } from "next/navigation";
+import { fetchQuery } from "convex/nextjs";
+import { Id } from "../../convex/_generated/dataModel";
+import { toast } from "sonner";
+import { api } from "../../convex/_generated/api";
 
 const Navbar = () => {
   const [user, setUser] = useState<{ name: string; email: string } | null>(
@@ -13,30 +17,36 @@ const Navbar = () => {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const loggedInUser = await account.get();
-        if (loggedInUser) {
-          setUser({ name: loggedInUser.name, email: loggedInUser.email });
+        const loggedUser = localStorage.getItem("convex-loggedIn-user");
+        if (!loggedUser) {
+          console.log(loggedUser);
+          // router.push("/");
         } else {
-          router.push("/");
+          const userDetails = await fetchQuery(api.users.getUser, {
+            userId: loggedUser as Id<"users">,
+          });
+          if (userDetails) {
+            setUser({ name: userDetails.name, email: userDetails.email });
+          }
         }
       } catch (error) {
         console.log(error);
-        router.push("/");
       }
     };
     getUser();
   }, []);
 
   const handleLogout = async () => {
-    await account.deleteSession("current");
+    localStorage.removeItem("convex-loggedIn-user");
+    toast.success("Logged out successfully!");
     router.push("/");
   };
   return (
-    <div className="sticky top-0 left-0 w-screen px-8 py-2 flex items-center bg-white shadow-md gap-4">
+    <div className="sticky z-20 top-0 left-0 w-screen px-8 py-2 flex items-center bg-white shadow-md gap-4">
       <div className="flex items-center gap-4 flex-1/4">
         <h1 className="font-bold text-lg text-blue-500">{"Hello ! "}</h1>
         <span className="font-semibold text-md text-black/90">
-          <Link className="cursor-pointer text-sm" href="/home">
+          <Link className="cursor-pointer text-sm capitalize" href="/home">
             {user && user?.name}
           </Link>
         </span>

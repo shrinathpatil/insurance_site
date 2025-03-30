@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { Metadata } from "next";
+import { ConvexClientProvider } from "@/components/convex-provider";
 
 export const metadata: Metadata = {
   title: "Authentication",
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-[#fefefe]">
-        <main>{children}</main>
+        <ConvexClientProvider>
+          <main>{children}</main>
+        </ConvexClientProvider>
         <Toaster position="top-right" richColors />
       </body>
     </html>

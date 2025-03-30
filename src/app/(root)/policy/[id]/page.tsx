@@ -1,8 +1,9 @@
 import EditPolicy from "@/components/EditPolicy";
-import { DatabaseId, PolicyCollectionId } from "@/constants";
-import { databases } from "@/lib/appwrite";
+import { fetchQuery } from "convex/nextjs";
 import { Edit } from "lucide-react";
 import { Metadata } from "next";
+import { api } from "../../../../../convex/_generated/api";
+import { Id } from "../../../../../convex/_generated/dataModel";
 
 export const metadata: Metadata = {
   title: "Edit Policy",
@@ -16,10 +17,12 @@ const EditPolicyPage = async ({
 }) => {
   const { id } = await params;
 
-  const data = await databases.getDocument(DatabaseId, PolicyCollectionId, id);
+  const data = await fetchQuery(api.policies.getPolicy, {
+    policyId: id as Id<"policies">,
+  });
 
   const policyData = {
-    id: data.$id,
+    id: data._id,
     date: data.date,
     registeredOwnerName: data.registeredOwnerName,
     vehicleUsedOwnerName: data.vehicleUsedOwnerName,
@@ -39,7 +42,8 @@ const EditPolicyPage = async ({
     agentPayout: data.agentPayout,
     netPayout: data.netPayout,
     directCmorAgent: data.directCmorAgent,
-    fileId: data.fileId,
+    fileUrl: data.fileUrl,
+    storageId: data.storageId as Id<"_storage">,
   };
 
   return (

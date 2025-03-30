@@ -27,18 +27,15 @@ import {
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Policy } from "./PolicyTable";
-import { databases, ID, storage } from "@/lib/appwrite";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { Calendar } from "./ui/calendar";
 import { cn } from "@/lib/utils";
-import {
-  BucketId,
-  DatabaseId,
-  PolicyCollectionId,
-  VehicleCollectionId,
-} from "@/constants";
 import { toast } from "sonner";
+import { useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import { fetchMutation, fetchQuery } from "convex/nextjs";
+import { Id } from "../../convex/_generated/dataModel";
 
 const EditPolicy = ({ policy }: { policy: Policy }) => {
   const router = useRouter();
@@ -46,15 +43,13 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
   const [vehicleModels, setVehicleModels] = useState<string[] | undefined>([]);
   const [addModel, setAddModel] = useState<boolean>(false);
   const editPolicy = policy;
+  const uploadUrl = useMutation(api.policies.generateUploadUrl);
 
   useEffect(() => {
     const fetchPolicy = async () => {
-      const models = await databases.listDocuments(
-        DatabaseId,
-        VehicleCollectionId
-      );
+      const models = await fetchQuery(api.vehicles.getVehicleModels);
 
-      const modelNames = models.documents.map((model) => model.name);
+      const modelNames = models.map((model) => model.name);
       setVehicleModels(modelNames);
     };
     fetchPolicy();
@@ -127,7 +122,7 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
       paidAgency: editPolicy.paidAgency.toString(),
       agentPayout: editPolicy.agentPayout.toString(),
       netPayout: editPolicy.netPayout.toString(),
-      directCmorAgent: editPolicy.directCmorAgent.toString(),
+      directCmorAgent: editPolicy.directCmorAgent,
     },
   });
 
@@ -239,17 +234,27 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
         toast.error("You have to make changes to save");
         return;
       } else {
-        let fileId = editPolicy.fileId;
+        let newFile = false;
+        let s_id: Id<"_storage"> | undefined = editPolicy.storageId;
         if (docFile) {
-          const res = await storage.createFile(BucketId, ID.unique(), docFile);
-          fileId = res.$id;
+          const url = await uploadUrl();
+          const result = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": docFile.type,
+            },
+            body: docFile,
+          });
+          const { storageId } = await result.json();
+          s_id = storageId;
+          newFile = true;
         }
 
-        const id = editPolicy.id!;
+        const id = editPolicy.id! as Id<"policies">;
         const sDate = new Date(values.date).toLocaleString(undefined, {
           timeZone: "Asia/Kolkata",
         });
-        const date = new Date(sDate);
+        const date = new Date(sDate).toString();
 
         const sEndDate = new Date(values.policyEndDate).toLocaleString(
           undefined,
@@ -257,20 +262,35 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
             timeZone: "Asia/Kolkata",
           }
         );
-        const endDate = new Date(sEndDate);
+        const endDate = new Date(sEndDate).toString();
 
-        await databases.updateDocument(DatabaseId, PolicyCollectionId, id, {
-          ...form.getValues(),
+        await fetchMutation(api.policies.updatePolicy, {
+          id,
           date,
+          registeredOwnerName: values.registeredOwnerName,
+          vehicleUsedOwnerName: values.vehicleUsedOwnerName,
           policyEndDate: endDate,
-          totalPremium: parseInt(form.getValues().totalPremium),
-          netPremium: parseInt(form.getValues().netPremium),
-          idv: parseInt(form.getValues().idv),
-          cmCollectAmount: parseInt(form.getValues().cmCollectAmount),
-          paidAgency: parseInt(form.getValues().paidAgency),
-          agentPayout: parseInt(form.getValues().agentPayout),
-          netPayout: parseInt(form.getValues().netPayout),
-          fileId,
+          vehicleManufacturingYear: values.vehicleManufacturingYear,
+          vehicleRegistrationNumber: values.vehicleRegistrationNumber,
+          customerMobileNumber: values.customerMobileNumber,
+          vehicleModel: values.vehicleModel,
+          anyVehicleWork: values.anyVehicleWork,
+          insuranceCompany: values.insuranceCompany,
+          insuranceAgency: values.insuranceAgency,
+          totalPremium: values.totalPremium ? parseInt(values.totalPremium) : 0,
+          netPremium: values.netPremium ? parseInt(values.netPremium) : 0,
+          idv: values.idv ? parseInt(values.idv) : 0,
+          cmCollectAmount: values.cmCollectAmount
+            ? parseInt(values.cmCollectAmount)
+            : 0,
+          paidAgency: values.paidAgency ? parseInt(values.paidAgency) : 0,
+          agentPayout: values.agentPayout ? parseInt(values.agentPayout) : 0,
+          netPayout: values.netPayout ? parseInt(values.netPayout) : 0,
+          directCmorAgent: values.directCmorAgent,
+          storageId: s_id as Id<"_storage">,
+          fileUrl: editPolicy.fileUrl,
+          oldFile: editPolicy.storageId,
+          newFile,
         });
 
         toast.success("Changes saved successfully!");
@@ -283,12 +303,7 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
   };
 
   const deletePolicy = async () => {
-    await storage.deleteFile(BucketId, editPolicy.fileId!);
-    await databases.deleteDocument(
-      DatabaseId,
-      PolicyCollectionId,
-      editPolicy.id!
-    );
+    await fetchMutation(api.policies.deletePolicy, { id: editPolicy.id! });
     toast.success("Policy deleted successfully!");
     router.push("/home");
   };

@@ -27,32 +27,31 @@ import {
 } from "@/components/ui/select";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { databases, ID, storage } from "@/lib/appwrite";
 import { CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Calendar } from "./ui/calendar";
-import {
-  BucketId,
-  DatabaseId,
-  PolicyCollectionId,
-  VehicleCollectionId,
-} from "@/constants";
 import { toast } from "sonner";
+import { useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import { fetchMutation, fetchQuery } from "convex/nextjs";
+import { Id } from "../../convex/_generated/dataModel";
 
 const AddPolicy = () => {
   const router = useRouter();
+  const uploadUrl = useMutation(api.policies.generateUploadUrl);
   const [vehicleModels, setVehicleModels] = useState<string[] | undefined>([]);
   const [addModel, setAddModel] = useState<boolean>(false);
   const [docFile, setDocFile] = useState<File | undefined>(undefined);
   useEffect(() => {
     const getVehicleModels = async () => {
-      const models = await databases.listDocuments(
-        DatabaseId,
-        VehicleCollectionId
-      );
+      const models = await fetchQuery(api.vehicles.getVehicleModels);
 
-      const modelNames = models.documents.map((model) => model.name);
-      setVehicleModels(modelNames);
+      if (models) {
+        const vehicleModels = models.map(
+          (model: { name: string }) => model.name
+        );
+        setVehicleModels(vehicleModels);
+      }
     };
     getVehicleModels();
   }, []);
@@ -87,17 +86,13 @@ const AddPolicy = () => {
     insuranceAgency: z
       .string()
       .nonempty({ message: "Please fill Insurance Agency!" }),
-    totalPremium: z
-      .string()
-      .nonempty({ message: "Please fill Total Premium!" }),
-    netPremium: z.string().nonempty({ message: "Please fill Net Premium!" }),
-    idv: z.string().nonempty({ message: "Please fill IDV!" }),
-    cmCollectAmount: z
-      .string()
-      .nonempty({ message: "Please fill CM Collect Amount!" }),
-    paidAgency: z.string().nonempty({ message: "Please fill Paid Agency!" }),
-    agentPayout: z.string().nonempty({ message: "Please fill Agent Payout!" }),
-    netPayout: z.string().nonempty({ message: "Please fill Net Payout!" }),
+    totalPremium: z.string().default(""),
+    netPremium: z.string().default(""),
+    idv: z.string().default(""),
+    cmCollectAmount: z.string().default(""),
+    paidAgency: z.string().default(""),
+    agentPayout: z.string().default(""),
+    netPayout: z.string().default(""),
     directCmorAgent: z
       .string()
       .nonempty({ message: "Please fill Direct CM or Agent!" }),
@@ -130,16 +125,24 @@ const AddPolicy = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      let fileId = "";
+      let storage_Id = "";
       if (docFile) {
-        const file = await storage.createFile(BucketId, ID.unique(), docFile);
-        fileId = file.$id;
+        const postUrl = await uploadUrl();
+        const result = await fetch(postUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": docFile.type,
+          },
+          body: docFile,
+        });
+        const { storageId } = await result.json();
+        storage_Id = storageId;
       }
 
       const sDate = new Date(values.date).toLocaleString(undefined, {
         timeZone: "Asia/Kolkata",
       });
-      const date = new Date(sDate);
+      const date = new Date(sDate).toString();
 
       const sEndDate = new Date(values.policyEndDate).toLocaleString(
         undefined,
@@ -147,26 +150,33 @@ const AddPolicy = () => {
           timeZone: "Asia/Kolkata",
         }
       );
-      const endDate = new Date(sEndDate);
+      const endDate = new Date(sEndDate).toString();
 
-      await databases.createDocument(
-        DatabaseId,
-        PolicyCollectionId,
-        ID.unique(),
-        {
-          ...values,
-          date: date,
-          policyEndDate: endDate,
-          totalPremium: parseInt(values.totalPremium),
-          netPremium: parseInt(values.netPremium),
-          idv: parseInt(values.idv),
-          cmCollectAmount: parseInt(values.cmCollectAmount),
-          paidAgency: parseInt(values.paidAgency),
-          agentPayout: parseInt(values.agentPayout),
-          netPayout: parseInt(values.netPayout),
-          fileId,
-        }
-      );
+      await fetchMutation(api.policies.createPolicy, {
+        date,
+        registeredOwnerName: values.registeredOwnerName,
+        vehicleUsedOwnerName: values.vehicleUsedOwnerName,
+        policyEndDate: endDate,
+        vehicleManufacturingYear: values.vehicleManufacturingYear,
+        vehicleRegistrationNumber: values.vehicleRegistrationNumber,
+        customerMobileNumber: values.customerMobileNumber,
+        vehicleModel: values.vehicleModel,
+        anyVehicleWork: values.anyVehicleWork,
+        insuranceCompany: values.insuranceCompany,
+        insuranceAgency: values.insuranceAgency,
+        totalPremium: values.totalPremium ? parseInt(values.totalPremium) : 0,
+        netPremium: values.netPremium ? parseInt(values.netPremium) : 0,
+        idv: values.idv ? parseInt(values.idv) : 0,
+        cmCollectAmount: values.cmCollectAmount
+          ? parseInt(values.cmCollectAmount)
+          : 0,
+        paidAgency: values.paidAgency ? parseInt(values.paidAgency) : 0,
+        agentPayout: values.agentPayout ? parseInt(values.agentPayout) : 0,
+        netPayout: values.netPayout ? parseInt(values.netPayout) : 0,
+        directCmorAgent: values.directCmorAgent,
+        fileUrl: "",
+        storageId: storage_Id as Id<"_storage">,
+      });
       toast.success("Policy Added Successfully!");
       router.push("/home");
     } catch (e) {
@@ -508,7 +518,7 @@ const AddPolicy = () => {
                       <Input
                         placeholder="Total Premium"
                         {...field}
-                        type="text"
+                        type="number"
                       />
                     </FormControl>
                     <FormDescription>Fill Total Premium</FormDescription>
@@ -526,7 +536,11 @@ const AddPolicy = () => {
                   <FormItem className="w-full">
                     <FormLabel>Net Premium</FormLabel>
                     <FormControl>
-                      <Input placeholder="Net Premium" {...field} type="text" />
+                      <Input
+                        placeholder="Net Premium"
+                        {...field}
+                        type="number"
+                      />
                     </FormControl>
                     <FormDescription>Fill Net Premium</FormDescription>
                     <FormMessage />
@@ -540,7 +554,7 @@ const AddPolicy = () => {
                   <FormItem className="w-full">
                     <FormLabel>IDV</FormLabel>
                     <FormControl>
-                      <Input placeholder="IDV" {...field} type="text" />
+                      <Input placeholder="IDV" {...field} type="number" />
                     </FormControl>
                     <FormDescription>Fill IDV</FormDescription>
                     <FormMessage />
@@ -559,7 +573,7 @@ const AddPolicy = () => {
                       <Input
                         placeholder="CM Collect Amount"
                         {...field}
-                        type="text"
+                        type="number"
                       />
                     </FormControl>
                     <FormDescription>Fill CM Collect Amount</FormDescription>
@@ -574,7 +588,11 @@ const AddPolicy = () => {
                   <FormItem className="w-full">
                     <FormLabel>Paid Agency</FormLabel>
                     <FormControl>
-                      <Input placeholder="Paid Agency" {...field} type="text" />
+                      <Input
+                        placeholder="Paid Agency"
+                        {...field}
+                        type="number"
+                      />
                     </FormControl>
                     <FormDescription>Fill Paid Agency</FormDescription>
                     <FormMessage />
@@ -593,7 +611,7 @@ const AddPolicy = () => {
                       <Input
                         placeholder="Agent Payout"
                         {...field}
-                        type="text"
+                        type="number"
                       />
                     </FormControl>
                     <FormDescription>Fill Agent Payout</FormDescription>
@@ -608,7 +626,11 @@ const AddPolicy = () => {
                   <FormItem className="w-full">
                     <FormLabel>Net Payout</FormLabel>
                     <FormControl>
-                      <Input placeholder="Net Payout" {...field} type="text" />
+                      <Input
+                        placeholder="Net Payout"
+                        {...field}
+                        type="number"
+                      />
                     </FormControl>
                     <FormDescription>Fill Net Payout</FormDescription>
                     <FormMessage />
