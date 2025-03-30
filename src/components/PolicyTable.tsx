@@ -42,7 +42,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Link from "next/link";
-import { fetchQuery } from "convex/nextjs";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import TableSkeleton from "./table-skeleton";
