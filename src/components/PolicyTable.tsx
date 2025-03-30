@@ -378,13 +378,13 @@ const PolicyTable = () => {
                   <DropdownMenuCheckboxItem
                     key={column.id}
                     className="capitalize"
-                    onCheckedChange={() => {
+                    onCheckedChange={() =>
                       filter == "registeredOwnerName"
                         ? setFilter(column.id)
                         : filter === column.id
                         ? setFilter("registeredOwnerName")
-                        : setFilter(column.id);
-                    }}
+                        : setFilter(column.id)
+                    }
                   >
                     {column.id}
                   </DropdownMenuCheckboxItem>
