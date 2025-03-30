@@ -139,18 +139,9 @@ const AddPolicy = () => {
         storage_Id = storageId;
       }
 
-      const sDate = new Date(values.date).toLocaleString(undefined, {
-        timeZone: "Asia/Kolkata",
-      });
-      const date = new Date(sDate).toString();
+      const date = new Date(values.date).toISOString();
 
-      const sEndDate = new Date(values.policyEndDate).toLocaleString(
-        undefined,
-        {
-          timeZone: "Asia/Kolkata",
-        }
-      );
-      const endDate = new Date(sEndDate).toString();
+      const endDate = new Date(values.policyEndDate).toISOString();
 
       await fetchMutation(api.policies.createPolicy, {
         date,
@@ -192,7 +183,7 @@ const AddPolicy = () => {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="flex items-center gap-4 justify-between w-full max-md:flex-wrap ">
               <div className="flex justify-center flex-col gap-2 min-w-[300px] w-1/2  max-md:w-full max-md:items-center">
-                <div className="flex items-center w-full gap-2 justify-between">
+                <div className="flex items-center w-full gap-2 justify-between max-lg:flex-col">
                   <FormField
                     control={form.control}
                     name="date"

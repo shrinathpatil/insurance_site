@@ -46,9 +46,11 @@ import { fetchQuery } from "convex/nextjs";
 import { api } from "../../convex/_generated/api";
 import { Id } from "../../convex/_generated/dataModel";
 import TableSkeleton from "./table-skeleton";
+import { useQuery } from "convex/react";
 
 export type Policy = {
-  id?: Id<"policies">;
+  _id: Id<"policies">;
+  _creationTime: number;
   date: string;
   registeredOwnerName: string;
   vehicleUsedOwnerName: string;
@@ -69,7 +71,7 @@ export type Policy = {
   netPayout: number;
   directCmorAgent: string;
   fileUrl: string;
-  storageId?: Id<"_storage">;
+  storageId: Id<"_storage"> | "";
 };
 
 export const columns: ColumnDef<Policy>[] = [
@@ -192,7 +194,7 @@ export const columns: ColumnDef<Policy>[] = [
     enableHiding: false,
     cell: ({ row }) => {
       const policy = row.original;
-      const id = policy.id!;
+      const id = policy._id!;
       const fileUrl = policy.fileUrl!;
 
       return (
@@ -227,8 +229,7 @@ export const columns: ColumnDef<Policy>[] = [
 ];
 
 const PolicyTable = () => {
-  const [data, setData] = React.useState<Policy[]>([]);
-  const [loading, setLoading] = React.useState<boolean>(true);
+  const data = useQuery(api.policies.getPolicies);
   const [filter, setFilter] = React.useState<string>("registeredOwnerName");
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -238,42 +239,8 @@ const PolicyTable = () => {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
-  React.useEffect(() => {
-    const fetchPolicy = async () => {
-      const response = await fetchQuery(api.policies.getPolicies);
-
-      const policies = response.map((doc) => ({
-        id: doc._id,
-        date: doc.date,
-        registeredOwnerName: doc.registeredOwnerName,
-        vehicleUsedOwnerName: doc.vehicleUsedOwnerName,
-        policyEndDate: doc.policyEndDate,
-        vehicleManufacturingYear: doc.vehicleManufacturingYear,
-        vehicleRegistrationNumber: doc.vehicleRegistrationNumber,
-        customerMobileNumber: doc.customerMobileNumber,
-        vehicleModel: doc.vehicleModel,
-        anyVehicleWork: doc.anyVehicleWork,
-        insuranceCompany: doc.insuranceCompany,
-        insuranceAgency: doc.insuranceAgency,
-        totalPremium: doc.totalPremium,
-        netPremium: doc.netPremium,
-        idv: doc.idv,
-        cmCollectAmount: doc.cmCollectAmount,
-        paidAgency: doc.paidAgency,
-        agentPayout: doc.agentPayout,
-        netPayout: doc.netPayout,
-        directCmorAgent: doc.directCmorAgent,
-        fileUrl: doc.fileUrl,
-        storageId: doc.storageId,
-      }));
-      //@ts-expect-error: setData is not in the type
-      setData(policies);
-      setLoading(false);
-    };
-    fetchPolicy();
-  }, []);
-
   const table = useReactTable({
+    //@ts-expect-error: data may be undefined
     data,
     columns,
     onSortingChange: setSorting,
@@ -293,7 +260,7 @@ const PolicyTable = () => {
   });
 
   const handleDownload = () => {
-    const excelData = data.map((item) => {
+    const excelData = data?.map((item) => {
       const formatDate = new Date(item.date);
       const formattedDate = new Intl.DateTimeFormat("en-GB", {
         day: "2-digit",
@@ -333,7 +300,7 @@ const PolicyTable = () => {
     exportToExcel(excelData, "BackupFile");
   };
 
-  if (loading) {
+  if (data === undefined) {
     return (
       <div className="w-full flex items-center justify-center h-1/2">
         <TableSkeleton />

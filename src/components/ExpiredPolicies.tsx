@@ -173,22 +173,14 @@ const ExpiredPolicies = () => {
       //@ts-expect-error: policyEndDate is not in the type
       const policies = [];
       result.forEach((policy) => {
-        const today = new Date().toString();
+        const sDate1 = new Date(policy.policyEndDate);
+        const sDate2 = new Date();
 
-        const sDate1 = new Date(policy.policyEndDate).toLocaleString(
-          undefined,
-          {
-            timeZone: "Asia/Kolkata",
-          }
-        );
-        const sDate2 = new Date(today).toLocaleString(undefined, {
-          timeZone: "Asia/Kolkata",
-        });
+        sDate1.setHours(0, 0, 0, 0);
+        sDate2.setHours(0, 0, 0, 0);
 
-        const date1 = new Date(sDate1);
-        const date2 = new Date(sDate2);
         //@ts-expect-error: diffTime is not in the type
-        const diffTime = Math.floor((date1 - date2) / 86400000);
+        const diffTime = Math.floor((sDate1 - sDate2) / 86400000);
 
         if (diffTime <= 10) {
           policies.push({

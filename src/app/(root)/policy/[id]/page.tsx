@@ -21,38 +21,13 @@ const EditPolicyPage = async ({
     policyId: id as Id<"policies">,
   });
 
-  const policyData = {
-    id: data._id,
-    date: data.date,
-    registeredOwnerName: data.registeredOwnerName,
-    vehicleUsedOwnerName: data.vehicleUsedOwnerName,
-    policyEndDate: data.policyEndDate,
-    vehicleManufacturingYear: data.vehicleManufacturingYear,
-    vehicleRegistrationNumber: data.vehicleRegistrationNumber,
-    customerMobileNumber: data.customerMobileNumber,
-    vehicleModel: data.vehicleModel,
-    anyVehicleWork: data.anyVehicleWork,
-    insuranceCompany: data.insuranceCompany,
-    insuranceAgency: data.insuranceAgency,
-    totalPremium: data.totalPremium,
-    netPremium: data.netPremium,
-    idv: data.idv,
-    cmCollectAmount: data.cmCollectAmount,
-    paidAgency: data.paidAgency,
-    agentPayout: data.agentPayout,
-    netPayout: data.netPayout,
-    directCmorAgent: data.directCmorAgent,
-    fileUrl: data.fileUrl,
-    storageId: data.storageId as Id<"_storage">,
-  };
-
   return (
     <div className="w-screen my-4">
       <h1 className="ml-8 flex gap-4 items-center text-lg text-black/80 hover:text-black font-bold cursor-pointer">
         Edit Policy
         <Edit size={24} color="gray" className="hover:stroke-blue-400" />
       </h1>
-      <EditPolicy policy={policyData} />
+      <EditPolicy policy={data} />
     </div>
   );
 };

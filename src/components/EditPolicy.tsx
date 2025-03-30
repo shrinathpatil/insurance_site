@@ -53,7 +53,7 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
       setVehicleModels(modelNames);
     };
     fetchPolicy();
-  }, [editPolicy.id]);
+  }, [editPolicy._id]);
 
   const formSchema = z.object({
     date: z.date({ required_error: "Please fill Date!" }),
@@ -129,7 +129,8 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
   const checkChanged = (): boolean => {
     if (docFile) return true;
     if (
-      form.getValues().date.toString() !== new Date(editPolicy.date).toString()
+      form.getValues().date.toISOString() !==
+      new Date(editPolicy.date).toISOString()
     ) {
       console.log(1);
       return true;
@@ -147,8 +148,8 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
       return true;
     }
     if (
-      form.getValues().policyEndDate.toString() !==
-      new Date(editPolicy.policyEndDate).toString()
+      form.getValues().policyEndDate.toISOString() !==
+      new Date(editPolicy.policyEndDate).toISOString()
     ) {
       console.log(4);
       return true;
@@ -235,7 +236,7 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
         return;
       } else {
         let newFile = false;
-        let s_id: Id<"_storage"> | undefined = editPolicy.storageId;
+        let s_id: Id<"_storage"> | "" = editPolicy.storageId;
         if (docFile) {
           const url = await uploadUrl();
           const result = await fetch(url, {
@@ -250,19 +251,10 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
           newFile = true;
         }
 
-        const id = editPolicy.id! as Id<"policies">;
-        const sDate = new Date(values.date).toLocaleString(undefined, {
-          timeZone: "Asia/Kolkata",
-        });
-        const date = new Date(sDate).toString();
+        const id = editPolicy._id! as Id<"policies">;
 
-        const sEndDate = new Date(values.policyEndDate).toLocaleString(
-          undefined,
-          {
-            timeZone: "Asia/Kolkata",
-          }
-        );
-        const endDate = new Date(sEndDate).toString();
+        const date = new Date(values.date).toISOString();
+        const endDate = new Date(values.policyEndDate).toISOString();
 
         await fetchMutation(api.policies.updatePolicy, {
           id,
@@ -289,7 +281,7 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
           directCmorAgent: values.directCmorAgent,
           storageId: s_id as Id<"_storage">,
           fileUrl: editPolicy.fileUrl,
-          oldFile: editPolicy.storageId,
+          oldFile: editPolicy.storageId as Id<"_storage">,
           newFile,
         });
 
@@ -303,7 +295,7 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
   };
 
   const deletePolicy = async () => {
-    await fetchMutation(api.policies.deletePolicy, { id: editPolicy.id! });
+    await fetchMutation(api.policies.deletePolicy, { id: editPolicy._id! });
     toast.success("Policy deleted successfully!");
     router.push("/home");
   };
@@ -315,7 +307,7 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="flex items-center gap-4 justify-between w-full max-md:flex-wrap ">
               <div className="flex justify-center flex-col gap-2 min-w-[300px] w-1/2  max-md:w-full max-md:items-center">
-                <div className="flex items-center w-full gap-2 justify-between">
+                <div className="flex items-center w-full gap-2 justify-between max-lg:flex-col">
                   <FormField
                     control={form.control}
                     name="date"
