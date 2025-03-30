@@ -100,14 +100,14 @@ export const updatePolicy = mutation({
     netPayout: v.number(),
     directCmorAgent: v.string(),
     fileUrl: v.union(v.string(), v.literal("")),
-    storageId: v.optional(v.id("_storage")),
+    storageId: v.union(v.id("_storage"), v.literal("")),
     newFile: v.boolean(),
-    oldFile: v.optional(v.id("_storage")),
+    oldFile: v.union(v.id("_storage"), v.literal("")),
   },
   handler: async (ctx, { id, ...args }) => {
     let fileUrl = args.fileUrl;
     if (args.newFile) {
-      if(args.oldFile){
+      if (args.oldFile) {
         await ctx.storage.delete(args.oldFile as Id<"_storage">);
       }
 
