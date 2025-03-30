@@ -107,7 +107,9 @@ export const updatePolicy = mutation({
   handler: async (ctx, { id, ...args }) => {
     let fileUrl = args.fileUrl;
     if (args.newFile) {
-      await ctx.storage.delete(args.oldFile as Id<"_storage">);
+      if(args.oldFile){
+        await ctx.storage.delete(args.oldFile as Id<"_storage">);
+      }
 
       const url = await ctx.storage.getUrl(args.storageId as Id<"_storage">);
       fileUrl = url || args.fileUrl;
