@@ -1,6 +1,6 @@
 "use client";
 
-import { account, ID } from "@/lib/appwrite";
+import { account } from "@/lib/appwrite";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -55,6 +55,7 @@ const LoginPage = () => {
         router.push("/home");
       }
     } catch (error) {
+      console.log(error);
       toast.error("Invalid credentials!");
     }
   };

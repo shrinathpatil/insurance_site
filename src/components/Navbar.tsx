@@ -6,7 +6,9 @@ import { account } from "@/lib/appwrite";
 import { useRouter } from "next/navigation";
 
 const Navbar = () => {
-  const [user, setUser] = useState<{ name: string; email: string }>(null);
+  const [user, setUser] = useState<{ name: string; email: string } | null>(
+    null
+  );
   const router = useRouter();
   useEffect(() => {
     const getUser = async () => {
@@ -18,6 +20,7 @@ const Navbar = () => {
           router.push("/");
         }
       } catch (error) {
+        console.log(error);
         router.push("/");
       }
     };

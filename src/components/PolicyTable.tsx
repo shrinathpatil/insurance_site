@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-//@ts-ignore
+//@ts-expect-error
 import { exportToExcel } from "react-json-to-excel";
 import {
   ColumnDef,
@@ -30,7 +30,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -45,7 +44,6 @@ import {
 import Link from "next/link";
 import { databases, storage } from "@/lib/appwrite";
 import { BucketId, DatabaseId, PolicyCollectionId } from "@/constants";
-import { toast } from "sonner";
 import { ClipLoader } from "react-spinners";
 
 export type Policy = {
@@ -77,8 +75,8 @@ export const columns: ColumnDef<Policy>[] = [
     accessorKey: "date",
     header: "Date",
     cell: ({ row }) => {
-      let formatDate = new Date(row.original.date);
-      let formattedDate = new Intl.DateTimeFormat("en-GB", {
+      const formatDate = new Date(row.original.date);
+      const formattedDate = new Intl.DateTimeFormat("en-GB", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -118,8 +116,8 @@ export const columns: ColumnDef<Policy>[] = [
     accessorKey: "policyEndDate",
     header: "Policy End",
     cell: ({ row }) => {
-      let formatDate = new Date(row.original.policyEndDate);
-      let formattedDate = new Intl.DateTimeFormat("en-GB", {
+      const formatDate = new Date(row.original.policyEndDate);
+      const formattedDate = new Intl.DateTimeFormat("en-GB", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -299,15 +297,15 @@ const PolicyTable = () => {
 
   const handleDownload = () => {
     const excelData = data.map((item) => {
-      let formatDate = new Date(item.date);
-      let formattedDate = new Intl.DateTimeFormat("en-GB", {
+      const formatDate = new Date(item.date);
+      const formattedDate = new Intl.DateTimeFormat("en-GB", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
       }).format(formatDate);
 
-      let formatEndDate = new Date(item.date);
-      let formattedEndDate = new Intl.DateTimeFormat("en-GB", {
+      const formatEndDate = new Date(item.date);
+      const formattedEndDate = new Intl.DateTimeFormat("en-GB", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -380,7 +378,7 @@ const PolicyTable = () => {
                   <DropdownMenuCheckboxItem
                     key={column.id}
                     className="capitalize"
-                    onCheckedChange={(value) => {
+                    onCheckedChange={() => {
                       filter == "registeredOwnerName"
                         ? setFilter(column.id)
                         : filter === column.id

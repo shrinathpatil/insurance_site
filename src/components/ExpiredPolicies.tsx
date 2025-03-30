@@ -51,8 +51,8 @@ const columns: ColumnDef<ExpiredPolicy>[] = [
     accessorKey: "policyStartDate",
     header: "Policy Start Date",
     cell: ({ row }) => {
-      let formatDate = new Date(row.original.policyStartDate);
-      let formattedDate = new Intl.DateTimeFormat("en-GB", {
+      const formatDate = new Date(row.original.policyStartDate);
+      const formattedDate = new Intl.DateTimeFormat("en-GB", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -64,8 +64,8 @@ const columns: ColumnDef<ExpiredPolicy>[] = [
     accessorKey: "policyEndDate",
     header: "Policy End Date",
     cell: ({ row }) => {
-      let formatDate = new Date(row.original.policyEndDate);
-      let formattedDate = new Intl.DateTimeFormat("en-GB", {
+      const formatDate = new Date(row.original.policyEndDate);
+      const formattedDate = new Intl.DateTimeFormat("en-GB", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -120,7 +120,7 @@ const columns: ColumnDef<ExpiredPolicy>[] = [
           </span>
         );
       } else {
-        let days = row.original.daysLeft;
+        const days = row.original.daysLeft;
         return (
           <span className="bg-yellow-100 font-semibold text-sm text-yellow-500 cursor-pointer py-1 px-2 rounded-md">
             {days} days left
@@ -172,21 +172,25 @@ const ExpiredPolicies = () => {
         DatabaseId,
         PolicyCollectionId
       );
-      let policies = [];
+      //@ts-expect-error
+      const policies = [];
       result.documents.forEach((policy) => {
-        let today = new Date().toString();
+        const today = new Date().toString();
 
-        let sDate1 = new Date(policy.policyEndDate).toLocaleString(undefined, {
+        const sDate1 = new Date(policy.policyEndDate).toLocaleString(
+          undefined,
+          {
+            timeZone: "Asia/Kolkata",
+          }
+        );
+        const sDate2 = new Date(today).toLocaleString(undefined, {
           timeZone: "Asia/Kolkata",
         });
-        let sDate2 = new Date(today).toLocaleString(undefined, {
-          timeZone: "Asia/Kolkata",
-        });
 
-        let date1 = new Date(sDate1);
-        let date2 = new Date(sDate2);
-        //@ts-ignore
-        let diffTime = Math.floor((date1 - date2) / 86400000);
+        const date1 = new Date(sDate1);
+        const date2 = new Date(sDate2);
+        //@ts-expect-error
+        const diffTime = Math.floor((date1 - date2) / 86400000);
 
         if (diffTime <= 10) {
           policies.push({

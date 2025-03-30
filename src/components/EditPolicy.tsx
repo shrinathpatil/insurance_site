@@ -43,11 +43,10 @@ import { toast } from "sonner";
 const EditPolicy = ({ policy }: { policy: Policy }) => {
   const router = useRouter();
   const [docFile, setDocFile] = useState<File | undefined>(undefined);
-  const [editPolicy, setEditPolicy] = useState(policy);
   const [vehicleModels, setVehicleModels] = useState<string[] | undefined>([]);
   const [addModel, setAddModel] = useState<boolean>(false);
+  const editPolicy = policy;
 
-  console.log(editPolicy);
   useEffect(() => {
     const fetchPolicy = async () => {
       const models = await databases.listDocuments(
@@ -246,13 +245,13 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
           fileId = res.$id;
         }
 
-        let id = editPolicy.id!;
-        let sDate = new Date(values.date).toLocaleString(undefined, {
+        const id = editPolicy.id!;
+        const sDate = new Date(values.date).toLocaleString(undefined, {
           timeZone: "Asia/Kolkata",
         });
         const date = new Date(sDate);
 
-        let sEndDate = new Date(values.policyEndDate).toLocaleString(
+        const sEndDate = new Date(values.policyEndDate).toLocaleString(
           undefined,
           {
             timeZone: "Asia/Kolkata",
@@ -260,29 +259,25 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
         );
         const endDate = new Date(sEndDate);
 
-        const update = await databases.updateDocument(
-          DatabaseId,
-          PolicyCollectionId,
-          id,
-          {
-            ...form.getValues(),
-            date,
-            policyEndDate: endDate,
-            totalPremium: parseInt(form.getValues().totalPremium),
-            netPremium: parseInt(form.getValues().netPremium),
-            idv: parseInt(form.getValues().idv),
-            cmCollectAmount: parseInt(form.getValues().cmCollectAmount),
-            paidAgency: parseInt(form.getValues().paidAgency),
-            agentPayout: parseInt(form.getValues().agentPayout),
-            netPayout: parseInt(form.getValues().netPayout),
-            fileId,
-          }
-        );
+        await databases.updateDocument(DatabaseId, PolicyCollectionId, id, {
+          ...form.getValues(),
+          date,
+          policyEndDate: endDate,
+          totalPremium: parseInt(form.getValues().totalPremium),
+          netPremium: parseInt(form.getValues().netPremium),
+          idv: parseInt(form.getValues().idv),
+          cmCollectAmount: parseInt(form.getValues().cmCollectAmount),
+          paidAgency: parseInt(form.getValues().paidAgency),
+          agentPayout: parseInt(form.getValues().agentPayout),
+          netPayout: parseInt(form.getValues().netPayout),
+          fileId,
+        });
 
         toast.success("Changes saved successfully!");
         router.push("/home");
       }
     } catch (e) {
+      console.log(e);
       toast.error("Something went wrong! try again later");
     }
   };

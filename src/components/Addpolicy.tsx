@@ -136,17 +136,20 @@ const AddPolicy = () => {
         fileId = file.$id;
       }
 
-      let sDate = new Date(values.date).toLocaleString(undefined, {
+      const sDate = new Date(values.date).toLocaleString(undefined, {
         timeZone: "Asia/Kolkata",
       });
       const date = new Date(sDate);
 
-      let sEndDate = new Date(values.policyEndDate).toLocaleString(undefined, {
-        timeZone: "Asia/Kolkata",
-      });
+      const sEndDate = new Date(values.policyEndDate).toLocaleString(
+        undefined,
+        {
+          timeZone: "Asia/Kolkata",
+        }
+      );
       const endDate = new Date(sEndDate);
 
-      const policy = await databases.createDocument(
+      await databases.createDocument(
         DatabaseId,
         PolicyCollectionId,
         ID.unique(),
@@ -167,6 +170,7 @@ const AddPolicy = () => {
       toast.success("Policy Added Successfully!");
       router.push("/home");
     } catch (e) {
+      console.log(e);
       toast.error("Failed to add policy!");
     }
   };

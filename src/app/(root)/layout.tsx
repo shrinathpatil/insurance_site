@@ -16,6 +16,7 @@ const HomeLayout = ({ children }: { children: React.ReactNode }) => {
         }
       } catch (error) {
         router.push("/");
+        console.log(error);
       }
     };
     checkUser();
