@@ -67,13 +67,7 @@ const LoginPage = () => {
     } catch (e) {
       const error = e as Error;
       console.log(error.message);
-      if (error.message.includes("UserNotFoundError")) {
-        toast.error("User not found!");
-      } else if (error.message.includes("InvalidCredentialsError")) {
-        toast.error("Invalid credentials!");
-      } else {
-        toast.error("Something went wrong!");
-      }
+      toast.error("Please Check Your email and password!");
     }
   };
   return (
