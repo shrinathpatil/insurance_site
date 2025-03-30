@@ -17,11 +17,15 @@ export const loginUser = query({
   handler: async (ctx, args) => {
     const user = await ctx.db
       .query("users")
-      .filter(
-        (q) =>
-          q.eq(q.field("email"), args.email) && q.eq(q.field("role"), "admin")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("email"), args.email),
+          q.eq(q.field("role"), "admin")
+        )
       )
       .first();
+
+    console.log("user", user);
     if (!user) {
       const e = new Error();
       e.message = "User not found!";
