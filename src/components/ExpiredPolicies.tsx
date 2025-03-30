@@ -31,12 +31,12 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import Link from "next/link";
-import { fetchQuery } from "convex/nextjs";
 import { api } from "../../convex/_generated/api";
 import TableSkeleton from "./table-skeleton";
+import { useQuery } from "convex/react";
 
 type ExpiredPolicy = {
-  id: string;
+  _id: string;
   registeredOwnerName: string;
   vehicleUsedOwnerName: string;
   vehicleRegistrationNumber: string;
@@ -135,7 +135,7 @@ const columns: ColumnDef<ExpiredPolicy>[] = [
     enableHiding: false,
     cell: ({ row }) => {
       const policy = row.original;
-      const id = policy.id!;
+      const id = policy._id!;
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -160,50 +160,14 @@ const columns: ColumnDef<ExpiredPolicy>[] = [
 ];
 
 const ExpiredPolicies = () => {
-  const [expiredPolicies, setExpiredPolicies] = useState<ExpiredPolicy[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const expiredPolicies = useQuery(api.policies.getExpiredPolicies);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
 
-  useEffect(() => {
-    const getExpiredPolicies = async () => {
-      const result = await fetchQuery(api.policies.getPolicies);
-      //@ts-expect-error: policyEndDate is not in the type
-      const policies = [];
-      result.forEach((policy) => {
-        const sDate1 = new Date(policy.policyEndDate);
-        const sDate2 = new Date();
-
-        sDate1.setHours(0, 0, 0, 0);
-        sDate2.setHours(0, 0, 0, 0);
-
-        //@ts-expect-error: diffTime is not in the type
-        const diffTime = Math.floor((sDate1 - sDate2) / 86400000);
-
-        if (diffTime <= 10) {
-          policies.push({
-            id: policy._id,
-            registeredOwnerName: policy.registeredOwnerName,
-            vehicleUsedOwnerName: policy.vehicleUsedOwnerName,
-            vehicleRegistrationNumber: policy.vehicleRegistrationNumber,
-            customerMobileNumber: policy.customerMobileNumber,
-            policyStartDate: policy.date,
-            policyEndDate: policy.policyEndDate,
-            daysLeft: diffTime,
-            status: diffTime <= 0 ? "expired" : "near",
-          });
-        }
-        //@ts-expect-error: policies is not in the type
-        setExpiredPolicies(policies);
-        setLoading(false);
-      });
-    };
-    getExpiredPolicies();
-  }, []);
-
   const table = useReactTable({
+    //@ts-expect-error: data can be undefined
     data: expiredPolicies,
     columns,
     onSortingChange: setSorting,
@@ -222,7 +186,7 @@ const ExpiredPolicies = () => {
     },
   });
 
-  if (loading) {
+  if (expiredPolicies === undefined) {
     return (
       <div className="w-full h-1/2 flex items-center justify-center ">
         <TableSkeleton />

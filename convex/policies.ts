@@ -149,3 +149,47 @@ export const deletePolicy = mutation({
     return id;
   },
 });
+
+export const getExpiredPolicies = query({
+  handler: async (ctx) => {
+    const result = await ctx.db.query("policies").collect();
+
+    const policies: {
+      _id: Id<"policies">;
+      registeredOwnerName: string;
+      vehicleUsedOwnerName: string;
+      vehicleRegistrationNumber: string;
+      customerMobileNumber: string;
+      policyStartDate: string;
+      policyEndDate: string;
+      daysLeft: number;
+      status: string;
+    }[] = [];
+
+    result.forEach((policy) => {
+      const sDate1 = new Date(policy.policyEndDate);
+      const sDate2 = new Date();
+
+      sDate1.setHours(0, 0, 0, 0);
+      sDate2.setHours(0, 0, 0, 0);
+
+      //@ts-expect-error: diffTime is not in the type
+      const diffTime = Math.floor((sDate1 - sDate2) / 86400000);
+
+      if (diffTime <= 10) {
+        policies.push({
+          _id: policy._id,
+          registeredOwnerName: policy.registeredOwnerName,
+          vehicleUsedOwnerName: policy.vehicleUsedOwnerName,
+          vehicleRegistrationNumber: policy.vehicleRegistrationNumber,
+          customerMobileNumber: policy.customerMobileNumber,
+          policyStartDate: policy.date,
+          policyEndDate: policy.policyEndDate,
+          daysLeft: diffTime,
+          status: diffTime <= 0 ? "expired" : "near",
+        });
+      }
+    });
+    return policies;
+  },
+});
