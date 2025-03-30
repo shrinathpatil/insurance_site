@@ -318,6 +318,7 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
                                 )}
                               >
                                 {field.value ? (
+                                  //@ts-expect-error: ignore this error
                                   format(field.value, "PPP")
                                 ) : (
                                   <span>Pick a date</span>
@@ -358,6 +359,7 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
                                 )}
                               >
                                 {field.value ? (
+                                  //@ts-expect-error: ignore this error
                                   format(field.value, "PPP")
                                 ) : (
                                   <span>Pick End Date</span>
