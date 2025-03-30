@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-//@ts-expect-error
+//@ts-expect-error: react-json-to-excel is not in the type
 import { exportToExcel } from "react-json-to-excel";
 import {
   ColumnDef,

@@ -172,7 +172,7 @@ const ExpiredPolicies = () => {
         DatabaseId,
         PolicyCollectionId
       );
-      //@ts-expect-error
+      //@ts-expect-error: policyEndDate is not in the type
       const policies = [];
       result.documents.forEach((policy) => {
         const today = new Date().toString();
@@ -189,7 +189,7 @@ const ExpiredPolicies = () => {
 
         const date1 = new Date(sDate1);
         const date2 = new Date(sDate2);
-        //@ts-expect-error
+        //@ts-expect-error: diffTime is not in the type
         const diffTime = Math.floor((date1 - date2) / 86400000);
 
         if (diffTime <= 10) {
@@ -205,7 +205,7 @@ const ExpiredPolicies = () => {
             status: diffTime <= 0 ? "expired" : "near",
           });
         }
-        //@ts-ignore
+        //@ts-expect-error: policies is not in the type
         setExpiredPolicies(policies);
         setLoading(false);
       });
