@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { LogOutIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { account } from "@/lib/appwrite";
 import { useRouter } from "next/navigation";
 import { fetchQuery } from "convex/nextjs";
 import { Id } from "../../convex/_generated/dataModel";
