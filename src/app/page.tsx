@@ -28,7 +28,7 @@ const LoginPage = () => {
           });
 
           if (loggedUser) {
-            toast.success("Already logged in!");
+            toast.success(`Welcome Back, ${loggedUser.name}`);
             router.push("/home");
           }
         }
