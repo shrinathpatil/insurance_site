@@ -72,7 +72,11 @@ export const getPolicy = query({
 
 export const getPolicies = query({
   handler: async (ctx) => {
-    const policies = await ctx.db.query("policies").collect();
+    const policies = await ctx.db
+      .query("policies")
+      .withIndex("by_creation_time")
+      .order("desc")
+      .collect();
     return policies;
   },
 });
