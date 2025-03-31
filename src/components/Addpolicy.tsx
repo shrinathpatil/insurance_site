@@ -702,7 +702,6 @@ const AddPolicy = () => {
                       </FormDescription>
                       <FormMessage />
                       <SelectContent className="w-full">
-                        <SelectItem value="select">select</SelectItem>
                         <SelectItem value="CM">CM</SelectItem>
                         <SelectItem value="Agent">Agent</SelectItem>
                       </SelectContent>

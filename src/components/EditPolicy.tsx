@@ -419,33 +419,36 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
                     )}
                   />
                 </div>
-                <div className="flex items-center w-full max-lg:flex-col max-lg:items-start"></div>
-                <FormItem className="flex-1">
-                  <FormLabel>Customer Documents</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Upload File"
-                      onChange={(e) =>
-                        setCustomerDocuments(e.target.files?.[0])
-                      }
-                      type="file"
-                    />
-                  </FormControl>
-                  <FormDescription>Upload Customer Documents</FormDescription>
-                  <FormMessage />
-                </FormItem>
-                <FormItem className="flex-1">
-                  <FormLabel>Policy Documents</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Upload File"
-                      onChange={(e) => setPolicyDocuments(e.target.files?.[0])}
-                      type="file"
-                    />
-                  </FormControl>
-                  <FormDescription>Upload Policy Documents</FormDescription>
-                  <FormMessage />
-                </FormItem>
+                <div className="flex w-full items-center gap-4 max-lg:flex-col max-lg:items-start">
+                  <FormItem className="flex-1">
+                    <FormLabel>Customer Documents</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Upload File"
+                        onChange={(e) =>
+                          setCustomerDocuments(e.target.files?.[0])
+                        }
+                        type="file"
+                      />
+                    </FormControl>
+                    <FormDescription>Upload Customer Documents</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                  <FormItem className="flex-1">
+                    <FormLabel>Policy Documents</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Upload File"
+                        onChange={(e) =>
+                          setPolicyDocuments(e.target.files?.[0])
+                        }
+                        type="file"
+                      />
+                    </FormControl>
+                    <FormDescription>Upload Policy Documents</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                </div>
               </div>
               <div className="flex justify-center flex-col gap-2 min-w-[300px] w-1/2 max-md:w-full max-md:items-center">
                 <FormField
@@ -791,17 +794,26 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
                 control={form.control}
                 name="directCmorAgent"
                 render={({ field }) => (
-                  <FormItem className="flex-1">
+                  <FormItem className="w-full">
                     <FormLabel>Direct CM or Agent</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Direct CM or Agent"
-                        {...field}
-                        type="text"
-                      />
-                    </FormControl>
-                    <FormDescription>Fill Direct CM or Agent</FormDescription>
-                    <FormMessage />
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select CM or Agent" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <FormDescription>
+                        Select Direct CM or Agent
+                      </FormDescription>
+                      <FormMessage />
+                      <SelectContent className="w-full">
+                        <SelectItem value="CM">CM</SelectItem>
+                        <SelectItem value="Agent">Agent</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </FormItem>
                 )}
               />
