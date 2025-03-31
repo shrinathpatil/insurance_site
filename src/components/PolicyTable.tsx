@@ -70,7 +70,9 @@ export type Policy = {
   netPayout: number;
   directCmorAgent: string;
   fileUrl: string;
+  customerFileUrl: string;
   storageId: Id<"_storage"> | "";
+  customerStorageId: Id<"_storage"> | "";
 };
 
 export const columns: ColumnDef<Policy>[] = [
@@ -195,6 +197,7 @@ export const columns: ColumnDef<Policy>[] = [
       const policy = row.original;
       const id = policy._id!;
       const fileUrl = policy.fileUrl!;
+      const customerFileUrl = policy.customerFileUrl!;
 
       return (
         <DropdownMenu>
@@ -209,14 +212,22 @@ export const columns: ColumnDef<Policy>[] = [
             <DropdownMenuItem>
               <Edit2 size={16} />
               <Link href={`/policy/${id}`} className="w-full">
-                Edit
+                Edit Policy
               </Link>
             </DropdownMenuItem>
             {fileUrl && (
               <DropdownMenuItem>
                 <Link2 size={16} />
                 <Link href={fileUrl} target="_blank" className="w-full">
-                  View Documents
+                  View Policy Documents
+                </Link>
+              </DropdownMenuItem>
+            )}
+            {customerFileUrl && (
+              <DropdownMenuItem>
+                <Link2 size={16} />
+                <Link href={customerFileUrl} target="_blank" className="w-full">
+                  View Customer Documents
                 </Link>
               </DropdownMenuItem>
             )}

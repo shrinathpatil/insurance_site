@@ -93,9 +93,13 @@ export const updatePolicy = mutation({
     netPayout: v.number(),
     directCmorAgent: v.string(),
     fileUrl: v.union(v.string(), v.literal("")),
+    customerFileUrl: v.union(v.string(), v.literal("")),
     storageId: v.union(v.id("_storage"), v.literal("")),
+    customerStorageId: v.union(v.id("_storage"), v.literal("")),
     newFile: v.boolean(),
+    newCustomerFile: v.boolean(),
     oldFile: v.union(v.id("_storage"), v.literal("")),
+    oldCustomerFile: v.union(v.id("_storage"), v.literal("")),
   },
   handler: async (ctx, { id, ...args }) => {
     let fileUrl = args.fileUrl;
@@ -107,6 +111,19 @@ export const updatePolicy = mutation({
       const url = await ctx.storage.getUrl(args.storageId as Id<"_storage">);
       fileUrl = url || args.fileUrl;
     }
+
+    let customerFileUrl = args.customerFileUrl;
+    if (args.newCustomerFile) {
+      if (args.oldCustomerFile) {
+        await ctx.storage.delete(args.oldCustomerFile as Id<"_storage">);
+      }
+
+      const url = await ctx.storage.getUrl(
+        args.customerStorageId as Id<"_storage">
+      );
+      customerFileUrl = url || args.customerFileUrl;
+    }
+
     console.log(args);
     const updatedPolicy = await ctx.db.patch(id, {
       date: args.date,
@@ -129,7 +146,9 @@ export const updatePolicy = mutation({
       netPayout: args.netPayout,
       directCmorAgent: args.directCmorAgent,
       fileUrl,
+      customerFileUrl,
       storageId: args.storageId,
+      customerStorageId: args.customerStorageId,
     });
     return updatedPolicy;
   },
@@ -163,7 +182,9 @@ export const createPolicy = mutation({
     netPayout: v.number(),
     directCmorAgent: v.string(),
     fileUrl: v.union(v.string(), v.literal("")),
+    customerFileUrl: v.union(v.string(), v.literal("")),
     storageId: v.union(v.id("_storage"), v.literal("")),
+    customerStorageId: v.union(v.id("_storage"), v.literal("")),
   },
   handler: async (ctx, args) => {
     //check if vehicle model already exists
@@ -185,9 +206,16 @@ export const createPolicy = mutation({
       fileUrl = url || "";
     }
 
+    let customerFileUrl = "";
+    if (args.customerStorageId) {
+      const url = await ctx.storage.getUrl(args.customerStorageId);
+      customerFileUrl = url || "";
+    }
+
     const policy = await ctx.db.insert("policies", {
       ...args,
       fileUrl,
+      customerFileUrl,
     });
 
     return policy;
@@ -201,6 +229,10 @@ export const deletePolicy = mutation({
 
     if (policy?.storageId) {
       await ctx.storage.delete(policy?.storageId as Id<"_storage">);
+    }
+
+    if (policy?.customerStorageId) {
+      await ctx.storage.delete(policy?.customerStorageId as Id<"_storage">);
     }
     await ctx.db.delete(id);
     return id;

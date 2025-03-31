@@ -39,7 +39,12 @@ import { Id } from "../../convex/_generated/dataModel";
 
 const EditPolicy = ({ policy }: { policy: Policy }) => {
   const router = useRouter();
-  const [docFile, setDocFile] = useState<File | undefined>(undefined);
+  const [policyDocuments, setPolicyDocuments] = useState<File | undefined>(
+    undefined
+  );
+  const [customerDocuments, setCustomerDocuments] = useState<File | undefined>(
+    undefined
+  );
   const [vehicleModels, setVehicleModels] = useState<string[] | undefined>([]);
   const [addModel, setAddModel] = useState<boolean>(false);
   const editPolicy = policy;
@@ -127,7 +132,7 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
   });
 
   const checkChanged = (): boolean => {
-    if (docFile) return true;
+    if (policyDocuments || customerDocuments) return true;
     if (
       form.getValues().date.toISOString() !==
       new Date(editPolicy.date).toISOString()
@@ -236,19 +241,35 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
         return;
       } else {
         let newFile = false;
-        let s_id: Id<"_storage"> | "" = editPolicy.storageId;
-        if (docFile) {
+        let newCustomerFile = false;
+        let policyStorage_id: Id<"_storage"> | "" = editPolicy.storageId;
+        let customerStorage_id: Id<"_storage"> | "" =
+          editPolicy.customerStorageId;
+        if (policyDocuments) {
           const url = await uploadUrl();
           const result = await fetch(url, {
             method: "POST",
             headers: {
-              "Content-Type": docFile.type,
+              "Content-Type": policyDocuments.type,
             },
-            body: docFile,
+            body: policyDocuments,
           });
           const { storageId } = await result.json();
-          s_id = storageId;
+          policyStorage_id = storageId;
           newFile = true;
+        }
+        if (customerDocuments) {
+          const url = await uploadUrl();
+          const result = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": customerDocuments.type,
+            },
+            body: customerDocuments,
+          });
+          const { storageId } = await result.json();
+          customerStorage_id = storageId;
+          newCustomerFile = true;
         }
 
         const id = editPolicy._id! as Id<"policies">;
@@ -279,10 +300,14 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
           agentPayout: values.agentPayout ? parseInt(values.agentPayout) : 0,
           netPayout: values.netPayout ? parseInt(values.netPayout) : 0,
           directCmorAgent: values.directCmorAgent,
-          storageId: s_id as Id<"_storage">,
+          storageId: policyStorage_id as Id<"_storage">,
+          customerStorageId: customerStorage_id as Id<"_storage">,
           fileUrl: editPolicy.fileUrl,
+          customerFileUrl: editPolicy.customerFileUrl,
           oldFile: editPolicy.storageId as Id<"_storage">,
+          oldCustomerFile: editPolicy.customerStorageId as Id<"_storage">,
           newFile,
+          newCustomerFile,
         });
 
         toast.success("Changes saved successfully!");
@@ -295,9 +320,14 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
   };
 
   const deletePolicy = async () => {
-    await fetchMutation(api.policies.deletePolicy, { id: editPolicy._id! });
-    toast.success("Policy deleted successfully!");
-    router.push("/home");
+    try {
+      await fetchMutation(api.policies.deletePolicy, { id: editPolicy._id! });
+      toast.success("Policy deleted successfully!");
+      router.push("/home");
+    } catch (e) {
+      console.log(e);
+      toast.error("Something went wrong! try again later");
+    }
   };
 
   return (
@@ -389,16 +419,31 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
                     )}
                   />
                 </div>
-                <FormItem className="w-full">
+                <div className="flex items-center w-full max-lg:flex-col max-lg:items-start"></div>
+                <FormItem className="flex-1">
                   <FormLabel>Customer Documents</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Upload File"
-                      onChange={(e) => setDocFile(e.target.files?.[0])}
+                      onChange={(e) =>
+                        setCustomerDocuments(e.target.files?.[0])
+                      }
                       type="file"
                     />
                   </FormControl>
                   <FormDescription>Upload Customer Documents</FormDescription>
+                  <FormMessage />
+                </FormItem>
+                <FormItem className="flex-1">
+                  <FormLabel>Policy Documents</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Upload File"
+                      onChange={(e) => setPolicyDocuments(e.target.files?.[0])}
+                      type="file"
+                    />
+                  </FormControl>
+                  <FormDescription>Upload Policy Documents</FormDescription>
                   <FormMessage />
                 </FormItem>
               </div>

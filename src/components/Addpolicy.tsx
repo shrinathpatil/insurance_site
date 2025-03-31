@@ -41,7 +41,13 @@ const AddPolicy = () => {
   const uploadUrl = useMutation(api.policies.generateUploadUrl);
   const [vehicleModels, setVehicleModels] = useState<string[] | undefined>([]);
   const [addModel, setAddModel] = useState<boolean>(false);
-  const [docFile, setDocFile] = useState<File | undefined>(undefined);
+  const [customerDocuments, setCustomerDocuments] = useState<File | undefined>(
+    undefined
+  );
+  const [policyDocuments, setPolicyDocuments] = useState<File | undefined>(
+    undefined
+  );
+
   useEffect(() => {
     const getVehicleModels = async () => {
       const models = await fetchQuery(api.vehicles.getVehicleModels);
@@ -125,18 +131,32 @@ const AddPolicy = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      let storage_Id = "";
-      if (docFile) {
+      let policyStorage_Id = "";
+      if (policyDocuments) {
         const postUrl = await uploadUrl();
         const result = await fetch(postUrl, {
           method: "POST",
           headers: {
-            "Content-Type": docFile.type,
+            "Content-Type": policyDocuments.type,
           },
-          body: docFile,
+          body: policyDocuments,
         });
         const { storageId } = await result.json();
-        storage_Id = storageId;
+        policyStorage_Id = storageId;
+      }
+
+      let customerStorage_Id = "";
+      if (customerDocuments) {
+        const postUrl = await uploadUrl();
+        const result = await fetch(postUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": customerDocuments.type,
+          },
+          body: customerDocuments,
+        });
+        const { storageId } = await result.json();
+        customerStorage_Id = storageId;
       }
 
       const date = new Date(values.date).toISOString();
@@ -166,7 +186,9 @@ const AddPolicy = () => {
         netPayout: values.netPayout ? parseInt(values.netPayout) : 0,
         directCmorAgent: values.directCmorAgent,
         fileUrl: "",
-        storageId: storage_Id as Id<"_storage">,
+        customerFileUrl: "",
+        storageId: policyStorage_Id as Id<"_storage">,
+        customerStorageId: customerStorage_Id as Id<"_storage">,
       });
       toast.success("Policy Added Successfully!");
       router.push("/home");
@@ -174,6 +196,12 @@ const AddPolicy = () => {
       console.log(e);
       toast.error("Failed to add policy!");
     }
+  };
+
+  const getEndDate = (policyDate: string) => {
+    const d = new Date(policyDate);
+    const endDate = new Date(d.setFullYear(d.getFullYear() + 1));
+    return endDate;
   };
 
   return (
@@ -213,7 +241,13 @@ const AddPolicy = () => {
                           <PopoverContent className="w-auto p-0" align="start">
                             <Calendar
                               mode="single"
-                              onSelect={field.onChange}
+                              onSelect={(v) => {
+                                field.onChange(v);
+                                if (v) {
+                                  const endDate = getEndDate(v.toString());
+                                  form.setValue("policyEndDate", endDate);
+                                }
+                              }}
                               initialFocus
                             />
                           </PopoverContent>
@@ -265,18 +299,36 @@ const AddPolicy = () => {
                     )}
                   />
                 </div>
-                <FormItem className="w-full">
-                  <FormLabel>Customer Documents</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Upload File"
-                      onChange={(e) => setDocFile(e.target.files?.[0])}
-                      type="file"
-                    />
-                  </FormControl>
-                  <FormDescription>Upload Customer Documents</FormDescription>
-                  <FormMessage />
-                </FormItem>
+                <div className="flex w-full items-center gap-4 max-lg:flex-col max-lg:items-start">
+                  <FormItem className="flex-1">
+                    <FormLabel>Customer Documents</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Upload File"
+                        onChange={(e) =>
+                          setCustomerDocuments(e.target.files?.[0])
+                        }
+                        type="file"
+                      />
+                    </FormControl>
+                    <FormDescription>Upload Customer Documents</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                  <FormItem className="flex-1">
+                    <FormLabel>Policy Documents</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Upload File"
+                        onChange={(e) =>
+                          setPolicyDocuments(e.target.files?.[0])
+                        }
+                        type="file"
+                      />
+                    </FormControl>
+                    <FormDescription>Upload Policy Documents</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                </div>
               </div>
               <div className="flex justify-center flex-col gap-2 min-w-[300px] w-1/2 max-md:w-full max-md:items-center">
                 <FormField
@@ -636,15 +688,25 @@ const AddPolicy = () => {
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel>Direct CM or Agent</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Direct CM or Agent"
-                        {...field}
-                        type="text"
-                      />
-                    </FormControl>
-                    <FormDescription>Fill Direct CM or Agent</FormDescription>
-                    <FormMessage />
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select CM or Agent" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <FormDescription>
+                        Select Direct CM or Agent
+                      </FormDescription>
+                      <FormMessage />
+                      <SelectContent className="w-full">
+                        <SelectItem value="select">select</SelectItem>
+                        <SelectItem value="CM">CM</SelectItem>
+                        <SelectItem value="Agent">Agent</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </FormItem>
                 )}
               />

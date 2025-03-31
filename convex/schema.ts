@@ -22,7 +22,9 @@ export default defineSchema({
     agentPayout: v.number(),
     netPayout: v.number(),
     directCmorAgent: v.string(),
+    customerFileUrl: v.union(v.string(), v.literal("")),
     fileUrl: v.union(v.string(), v.literal("")),
+    customerStorageId: v.union(v.id("_storage"), v.literal("")),
     storageId: v.union(v.id("_storage"), v.literal("")),
   }),
   vehicleModels: defineTable({
