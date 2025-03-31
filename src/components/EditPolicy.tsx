@@ -794,7 +794,7 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
                 control={form.control}
                 name="directCmorAgent"
                 render={({ field }) => (
-                  <FormItem className="w-full">
+                  <FormItem className="w-1/2 max-md:w-full">
                     <FormLabel>Direct CM or Agent</FormLabel>
                     <Select
                       onValueChange={field.onChange}
@@ -817,7 +817,7 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
                   </FormItem>
                 )}
               />
-              <div className="flex items-center flex-1 max-md:flex-wrap gap-4">
+              <div className="flex items-center w-1/2 max-md:w-full max-md:flex-wrap gap-4">
                 <Button className="flex w-1/2 max-md:w-full max-md:flex-col cursor-pointer">
                   <ClipLoader
                     size={20}

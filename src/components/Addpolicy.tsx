@@ -130,6 +130,14 @@ const AddPolicy = () => {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!customerDocuments) {
+      toast.error("Please upload customer documents!");
+      return;
+    }
+    if (!policyDocuments) {
+      toast.error("Please upload policy documents!");
+      return;
+    }
     try {
       let policyStorage_Id = "";
       if (policyDocuments) {
@@ -710,7 +718,10 @@ const AddPolicy = () => {
                 )}
               />
 
-              <Button type="submit" className="w-1/2 cursor-pointer">
+              <Button
+                type="submit"
+                className="w-1/2 max-md:w-full cursor-pointer"
+              >
                 <ClipLoader
                   size={20}
                   color="#ffffff"
