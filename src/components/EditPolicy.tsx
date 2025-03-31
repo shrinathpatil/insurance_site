@@ -434,13 +434,20 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
                     </FormControl>
                     <FormDescription>
                       Update Customer Documents |{" "}
-                      <Link
-                        href={editPolicy.customerFileUrl}
-                        target="_blank"
-                        className="cursor-pointer hover:underline text-blue-500  "
-                      >
-                        View File
-                      </Link>
+                      {editPolicy?.customerFileUrl ? (
+                        <Link
+                          href={editPolicy.customerFileUrl}
+                          target="_blank"
+                          className="cursor-pointer hover:underline text-blue-500  "
+                        >
+                          View File
+                        </Link>
+                      ) : (
+                        <span className="cursor-pointer hover:underline text-red-500 ">
+                          {" "}
+                          No File
+                        </span>
+                      )}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -457,13 +464,20 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
                     </FormControl>
                     <FormDescription>
                       Update Policy Documents |{" "}
-                      <Link
-                        href={editPolicy.fileUrl}
-                        target="_blank"
-                        className="cursor-pointer hover:underline text-blue-500  "
-                      >
-                        View File
-                      </Link>
+                      {editPolicy?.fileUrl ? (
+                        <Link
+                          href={editPolicy.fileUrl}
+                          target="_blank"
+                          className="cursor-pointer hover:underline text-blue-500  "
+                        >
+                          View File
+                        </Link>
+                      ) : (
+                        <span className="cursor-pointer hover:underline text-red-500 ">
+                          {" "}
+                          No File
+                        </span>
+                      )}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
