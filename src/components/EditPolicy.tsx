@@ -36,6 +36,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { fetchMutation, fetchQuery } from "convex/nextjs";
 import { Id } from "../../convex/_generated/dataModel";
+import Link from "next/link";
 
 const EditPolicy = ({ policy }: { policy: Policy }) => {
   const router = useRouter();
@@ -431,7 +432,16 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
                         type="file"
                       />
                     </FormControl>
-                    <FormDescription>Upload Customer Documents</FormDescription>
+                    <FormDescription>
+                      Update Customer Documents |{" "}
+                      <Link
+                        href={editPolicy.customerFileUrl}
+                        target="_blank"
+                        className="cursor-pointer hover:underline text-blue-500  "
+                      >
+                        View File
+                      </Link>
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                   <FormItem className="flex-1">
@@ -445,7 +455,16 @@ const EditPolicy = ({ policy }: { policy: Policy }) => {
                         type="file"
                       />
                     </FormControl>
-                    <FormDescription>Upload Policy Documents</FormDescription>
+                    <FormDescription>
+                      Update Policy Documents |{" "}
+                      <Link
+                        href={editPolicy.fileUrl}
+                        target="_blank"
+                        className="cursor-pointer hover:underline text-blue-500  "
+                      >
+                        View File
+                      </Link>
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 </div>
